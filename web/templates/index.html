@@ -1,0 +1,38 @@
+<!-- templates/index.html -->
+
+{% extends "_base.html" %}
+
+{% block title %}All articles{% endblock %}
+
+{% block content %}
+<section class="bg-white dark:bg-gray-900">
+    <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+        <div class="mx-auto max-w-screen-sm text-center lg:mb-16 mb-8">
+            <h2 class="mb-4 text-3xl lg:text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white">Latest
+                news</h2>
+            <p class="font-light text-gray-500 sm:text-xl dark:text-gray-400">List of all articles.</p>
+        </div>
+
+        <div class="flex gap-1 flex-wrap mb-4">
+            <a class="{% if active_category == None %}bg-blue-700 text-white{% endif %} bg-blue-100 uppercase text-blue-700 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-primary-200 dark:text-primary-800"
+               href="{% url 'index' %}">
+                All
+            </a>
+            {% for category in categories %}
+            <a class="{% if active_category == category %}bg-blue-700 text-white{% endif %} bg-blue-100 uppercase text-blue-700 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-primary-200 dark:text-primary-800"
+               href="{% url 'index_by_category' category %}">
+                {{category}}
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="grid gap-8 lg:grid-cols-2">
+            {% for article in articles %}
+            {% include "article-box.html" %}
+            {% endfor %}
+        </div>
+
+        <p class="mt-8 text-center">Pagination TODO</p>
+    </div>
+</section>
+{% endblock content %}

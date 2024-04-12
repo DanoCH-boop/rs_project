@@ -6,14 +6,13 @@ from datetime import datetime, timedelta
 
 
 def load_data():
-    news_columns = ['ID', 'Category', 'Subcategory', 'Headline']
-    news_df = pd.read_csv('../dataset/news.tsv', sep='\t', names=news_columns, usecols=[0, 1, 2, 3])
+    news_columns = ['ID', 'Category', 'Subcategory', 'Headline', 'Abstract']
+    news_df = pd.read_csv('../datasets/MINDsmall_train/news.tsv', sep='\t', names=news_columns, usecols=[0, 1, 2, 3, 4])
 
     beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
-    beh_df = pd.read_csv('../dataset/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
+    beh_df = pd.read_csv('../datasets/MINDsmall_train/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
 
     return news_df, beh_df
-
 
 def get_most_popular(date_str, beh_df):
     date = datetime.strptime(date_str, '%m/%d/%Y %I:%M:%S %p')
@@ -34,7 +33,7 @@ def get_most_popular(date_str, beh_df):
     popular_clicked_articles = all_article_ids_series.value_counts()
     
     top_5_clicked_articles = popular_clicked_articles.head(5)
-    
+
     return top_5_clicked_articles
 
 
