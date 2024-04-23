@@ -7,17 +7,16 @@ from datetime import datetime, timedelta
 
 def load_data():
     news_columns = ['ID', 'Category', 'Subcategory', 'Headline', 'Abstract']
-    news_df = pd.read_csv('../datasets/MINDsmall_train/news.tsv', sep='\t', names=news_columns, usecols=[0, 1, 2, 3, 4])
+    news_df = pd.read_csv('datasets/news.tsv', sep='\t', names=news_columns, usecols=[0, 1, 2, 3, 4])
 
     beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
-    beh_df = pd.read_csv('../datasets/MINDsmall_train/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
+    beh_df = pd.read_csv('datasets/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
 
     return news_df, beh_df
 
 def get_most_popular(date_str, beh_df):
     date = datetime.strptime(date_str, '%m/%d/%Y %I:%M:%S %p')
     start_date = date - timedelta(hours=24)
-    beh_df['Time'] = pd.to_datetime(beh_df['Time'])
     
     filtered_df = beh_df[(beh_df['Time'] >= start_date) & (beh_df['Time'] < date)]
     
