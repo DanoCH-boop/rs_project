@@ -7,10 +7,10 @@ from datetime import datetime, timedelta
 
 def load_data():
     news_columns = ['ID', 'Category', 'Subcategory', 'Headline', 'Abstract']
-    news_df = pd.read_csv('datasets/news.tsv', sep='\t', names=news_columns, usecols=[0, 1, 2, 3, 4])
+    news_df = pd.read_csv('datasets/MINDsmall_dev/news.tsv', sep='\t', names=news_columns, usecols=[0, 1, 2, 3, 4])
 
     beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
-    beh_df = pd.read_csv('datasets/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
+    beh_df = pd.read_csv('datasets/MINDsmall_dev/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
 
     return news_df, beh_df
 
