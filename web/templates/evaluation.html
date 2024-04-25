@@ -1,0 +1,35 @@
+<!-- templates/index.html -->
+
+{% extends "_base.html" %}
+
+{% block title %}Evaluation{% endblock %}
+
+{% block content %}
+<section class="bg-white dark:bg-gray-900">
+    <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+        <div class="mx-auto max-w-screen-sm text-center lg:mb-16 mb-8">
+            <h2 class="mb-4 text-3xl lg:text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white">Evaluation</h2>
+            <p class="font-light text-gray-500 sm:text-xl dark:text-gray-400">Evaluation of proposed methods.</p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="table-auto border-collapse w-full">
+                <thead>
+                    <tr class="bg-gray-200 dark:bg-gray-800">
+                        <th class="px-4 py-2" style="text-align: left;">Recommender</th>
+                        <th class="px-4 py-2" style="text-align: left;">AUC</th>
+                        <th class="px-4 py-2" style="text-align: left;">MRR</th>
+                        <th class="px-4 py-2" style="text-align: left;">NDCG@5</th>
+                        <th class="px-4 py-2" style="text-align: left;">NDCG@10</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recommender in recommenders %}
+                    {% include "evaluation-result.html" %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock content %}
