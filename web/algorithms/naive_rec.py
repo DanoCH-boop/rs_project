@@ -6,24 +6,24 @@ from datetime import datetime, timedelta
 
 
 def load_data():
-    news_columns = ['ID', 'Category', 'Subcategory', 'Headline']
-    news_df = pd.read_csv('../dataset/news.tsv', sep='\t', names=news_columns, usecols=[0, 1, 2, 3])
+    news_columns = ['ID', 'Category', 'Subcategory', 'Headline', 'Abstract']
+    news_df = pd.read_csv('datasets/MINDsmall_dev/news.tsv', sep='\t', names=news_columns, usecols=[0, 1, 2, 3, 4])
 
     beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
-    beh_df = pd.read_csv('../dataset/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
+    beh_df = pd.read_csv('datasets/MINDsmall_dev/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
 
     return news_df, beh_df
 
+# Most Popular
 
 def get_most_popular(date_str, beh_df):
     date = datetime.strptime(date_str, '%m/%d/%Y %I:%M:%S %p')
     start_date = date - timedelta(hours=24)
-    beh_df['Time'] = pd.to_datetime(beh_df['Time'])
     
     filtered_df = beh_df[(beh_df['Time'] >= start_date) & (beh_df['Time'] < date)]
-    
     split_ids = filtered_df['Impression'].str.split()
-    
+    start_date = start_date.strftime('%m/%d/%Y %I:%M:%S %p')
+
     all_article_ids = []
     
     for ids in split_ids:
@@ -34,9 +34,64 @@ def get_most_popular(date_str, beh_df):
     popular_clicked_articles = all_article_ids_series.value_counts()
     
     top_5_clicked_articles = popular_clicked_articles.head(5)
-    
+
     return top_5_clicked_articles
 
+def get_coeficcients_most_popular(beh_df): 
+    def find_index(series, name):
+        try:
+            index = series.index.get_loc(name) + 1  # Adding 1 to start index from 1
+            return index
+        except KeyError:
+            return 0
+
+    result_df = pd.DataFrame(columns=['id', 'array'])
+    
+    for index, row in beh_df.iterrows():
+
+        result_df = pd.DataFrame(columns=['id', 'array'])
+
+        date = row['Time']
+        date_ = datetime.strptime(date, '%m/%d/%Y %I:%M:%S %p')
+        start_date = date_ - timedelta(hours=24)
+        start_date = start_date.strftime('%m/%d/%Y %I:%M:%S %p')
+
+        filtered_df = beh_df[(beh_df['Time'] >= start_date) & (beh_df['Time'] < date)]
+        split_ids = filtered_df['Impression'].str.split()
+
+        all_article_ids = []
+
+        for ids in split_ids:
+            all_article_ids.extend([id.strip('-1') for id in ids if id.endswith('-1')])
+
+        all_article_ids_series = pd.Series(all_article_ids)
+
+        popular_clicked_articles = all_article_ids_series.value_counts()
+
+        sorted_popular = popular_clicked_articles.sort_values(ascending=False)
+
+        num_rows = sorted_popular.shape[0]
+
+        impression_ids = row['Impression'].split()
+
+        split_Impression_list = [word for sublist in impression_ids for word in sublist.split()]
+
+        impression_coef_array = []
+
+        for id in split_Impression_list:
+            sliced_id = id.split("-")[0]
+
+            row_index = find_index(sorted_popular, sliced_id)
+
+            if row_index == 0:
+                impression_coef_array.append(0)
+            else:
+                impression_coef_array.append(1 - (int(row_index) - 1) / (num_rows - 1))
+
+        result_df.loc[len(result_df.index)] = [index + 1, impression_coef_array] 
+    return result_df
+
+# Most Popular by categories
 
 def get_top_categories(beh_df, news_df, user_id):
     # Filter behavior data for the given user
@@ -71,6 +126,8 @@ def select_random_articles(news_df, categories, subcategories):
         
         
     return selected_category_articles, selected_subcategory_articles
+
+
 
 
 def example():
