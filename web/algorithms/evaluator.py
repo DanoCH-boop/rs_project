@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+
+# Dominik Adam
+# MUNI FI, Brno
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
-
 
 class Evaluator:
     def __init__(self):
@@ -12,9 +14,9 @@ class Evaluator:
         self._entity_embedding_path = f"{dataset_dir}/entity_embedding.vec"
         self._relation_embedding_path = f"{dataset_dir}/relation_embedding.vec"
 
-        news_columns = ['ID', 'Category', 'Subcategory', 'Headline', 'Abstract']
+        news_columns = ['ID', 'Category', 'Subcategory', 'Title', 'Abstract']
         # TODO Remove head for evaluation from the line under, potentially optimize load time of evaluation page
-        self._news = pd.read_csv(self._news_path, sep='\t', names=news_columns, usecols=[0, 1, 2, 3, 4]).head(10)
+        self._news = pd.read_csv(self._news_path, sep='\t', names=news_columns, usecols=[0, 1, 2, 3, 4])
 
         beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
         # TODO Remove head for evaluation from the line under, potentially optimize load time of evaluation page

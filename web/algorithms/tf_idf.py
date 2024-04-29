@@ -1,4 +1,8 @@
+# Daniel Chudý
+# MUNI FI, Brno
+
 import pandas as pd
+import numpy as np
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -24,9 +28,11 @@ def preprocess(text):
     # Join tokens into a single string
     return ' '.join(preprocessed_text)
 
-def recommend_articles(df, category, title_string):
-    # Filter DataFrame by category
-    df = df[df['Category'] == category]
+def tf_idf_cosine_rec(df, category, title_string, mode="live"):
+
+    if not mode == "eval":
+        # Filter DataFrame by category
+        df = df[df['Category'] == category]
     
     # Preprocess input title
     preprocessed_input_title = preprocess(title_string)
@@ -44,8 +50,14 @@ def recommend_articles(df, category, title_string):
     input_tfidf = tfidf_vectorizer.transform([preprocessed_input_title])
     
     # Calculate cosine similarity between input title and all titles in the DataFrame
-    cosine_similarities = cosine_similarity(input_tfidf, tfidf_matrix).flatten()
-    
+    # We have to explicitly set the dtype to 'float32' because of the deletion of values == 1.0 later on
+    cosine_similarities = np.array(cosine_similarity(input_tfidf, tfidf_matrix).flatten(), dtype='float32')
+
+    if mode == "eval":
+        # In case there are the same articles in history and impression column
+        cosine_similarities = cosine_similarities[cosine_similarities != 1]
+        return np.sum(cosine_similarities)/len(cosine_similarities)
+
     # Get indices of top recommendations
     top_indices = cosine_similarities.argsort()[:-1][::-1]
     
@@ -64,7 +76,7 @@ if __name__ == "__main__":
         'Category': ['health', 'health', 'health', 'health', 'health'],
         'Subcategory': ['weightloss', 'weightloss', 'weightloss', 'weightloss', 'weightloss'],
         'Title': [
-            "The 50 Worst Habits For Belly Fat",
+            "50 Worst Habits For Belly Fat",
             "10 guys that have shredded abs",
             "How to Reduce Belly Fat Naturally",
             "5 Foods The That Burn Belly Fat",
@@ -75,7 +87,10 @@ if __name__ == "__main__":
     df = pd.DataFrame(data)
 
     # Example usage
-    recommended_titles = recommend_articles(df, category='health', title_string='50 Worst Habits For Belly Fat')
-    print("Recommended Articles:")
-    for title in recommended_titles:
-        print(title)
+    mode = "live"
+    recommended_titles = tf_idf_cosine_rec(df, category='health', title_string='50 Worst Habits For Belly Fat', mode=mode)
+    if mode == "live":
+        print("Recommended Articles:")
+        for title in recommended_titles:
+            print(title)
+    print(recommended_titles)

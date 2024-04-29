@@ -1,3 +1,6 @@
+# Dominik Adam
+# MUNI FI, Brno
+
 import random
 
 def random_rating_recommender(beh_df, news_df):
