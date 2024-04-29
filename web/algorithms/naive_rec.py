@@ -48,8 +48,6 @@ def get_coeficcients_most_popular(beh_df):
     result_df = pd.DataFrame(columns=['id', 'array'])
     
     for index, row in beh_df.iterrows():
-        if index > 1:
-            break
 
         result_df = pd.DataFrame(columns=['id', 'array'])
 
