@@ -1,6 +1,8 @@
 # Daniel Chudý
 # MUNI FI, Brno
 import pandas as pd
+import numpy as np
+import random
 from web.algorithms.tf_idf import tf_idf_cosine_rec
 
 # Switch mode to "concat" to concatenate all titles into one
@@ -12,8 +14,12 @@ def tf_idf_cosine_recommender(beh_df, news_df, mode="split"):
     all_ratings = []
     for _, line in df_evaluate.iterrows():
         articles = line['Articles_to_evaluate'].split()
-        history = line['History'].split()
+        history = [] if isinstance(line['History'], float) and np.isnan(line['History']) else line['History'].split()
         ratings = []
+
+        if len(history) == 0:
+            all_ratings.append([round(random.random(), 5) for _ in articles])
+            continue
 
         for article in articles:
             title = news_df[news_df['ID'] == article]['Title'].values[0]

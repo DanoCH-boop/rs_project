@@ -3,6 +3,8 @@ from django.shortcuts import render
 from web.algorithms.evaluator import Evaluator
 from web.algorithms.naive_rec import load_data, get_most_popular
 from web.algorithms.random_recommender import random_rating_recommender
+from web.algorithms.most_popular_recommender import most_popular_recommender
+from web.algorithms.tf_idf_recommender import tf_idf_cosine_recommender
 
 
 def index(request, category=None, page=1):
@@ -34,7 +36,9 @@ def article_detail(request, article_id):
 def evaluation(request):
     evaluator = Evaluator()
     recommenders = {
-        "Random recommender": random_rating_recommender
+        "Random recommender": random_rating_recommender,
+        "Most popular recommender": most_popular_recommender,
+        "Tf-idf recommender": tf_idf_cosine_recommender
     }
     evals = [{
         "name": name,

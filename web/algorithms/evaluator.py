@@ -20,7 +20,7 @@ class Evaluator:
 
         beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
         # TODO Remove head for evaluation from the line under, potentially optimize load time of evaluation page
-        self._behaviors = pd.read_csv(self._behaviors_path, sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4]).head(10)
+        self._behaviors = pd.read_csv(self._behaviors_path, sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4]).head(100)
 
     def __dcg_score(self, y_true, y_score, k=10):
         order = np.argsort(y_score)[::-1]
