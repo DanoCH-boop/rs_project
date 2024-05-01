@@ -5,6 +5,7 @@ from web.algorithms.naive_rec import load_data, get_most_popular
 from web.algorithms.random_recommender import random_rating_recommender
 from web.algorithms.most_popular_recommender import most_popular_recommender
 from web.algorithms.tf_idf_recommender import tf_idf_cosine_recommender
+from web.algorithms.sentence_embedding_recommender import sentence_embedding_recommender
 
 
 def index(request, category=None, page=1):
@@ -38,10 +39,25 @@ def evaluation(request):
     recommenders = {
         "Random recommender": random_rating_recommender,
         "Most popular recommender": most_popular_recommender,
-        "Tf-idf recommender": tf_idf_cosine_recommender
+        "Tf-idf recommender": tf_idf_cosine_recommender,
+        # "Sentence embedding recommender": sentence_embedding_recommender,
     }
     evals = [{
         "name": name,
         "evaluation": [round(result, 4) for result in evaluator.evaluate(recommender)]
     } for name, recommender in recommenders.items()]
+    evals.extend([
+        {
+            "name": "MIND competition 1. place",
+            "evaluation": [0.7304, 0.3770, 0.4180, 0.4718]
+        },
+        {
+            "name": "MIND competition 2. place",
+            "evaluation": [0.7275, 0.3724, 0.4102, 0.4661]
+        },
+        {
+            "name": "MIND competition 3. place",
+            "evaluation": [0.7268, 0.3745, 0.4151, 0.4684]
+        },
+    ])
     return render(request, 'evaluation.html', {'recommenders': evals})
