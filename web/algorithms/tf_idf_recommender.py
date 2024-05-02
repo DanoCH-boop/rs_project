@@ -1,12 +1,14 @@
 # Daniel Chudý
 # MUNI FI, Brno
+
 import pandas as pd
 from web.algorithms.tf_idf import tf_idf_cosine_rec
+from typing import Literal
 
 # Switch mode to "concat" to concatenate all titles into one
-def tf_idf_cosine_recommender(beh_df, news_df, mode="split"):  
+def tf_idf_cosine_recommender(beh_df, news_df, mode: Literal["split", "concat"] = "split"):  
     beh_df['Articles_to_evaluate'] = beh_df['Impression'].str.split().apply(lambda impressions: ' '.join([impression[:-2] for impression in impressions]))
-
+    print(mode.upper())
     df_evaluate = beh_df[['ID', 'History', 'Articles_to_evaluate']]
 
     all_ratings = []
@@ -25,5 +27,5 @@ def tf_idf_cosine_recommender(beh_df, news_df, mode="split"):
 
         all_ratings.append(ratings)
 
-    beh_df['Scores'] = [[sorted(sublist, reverse=True).index(value) + 1 for value in sublist] for sublist in all_ratings]
+    beh_df['Scores'] = all_ratings
     return beh_df[['ID', 'Scores']]

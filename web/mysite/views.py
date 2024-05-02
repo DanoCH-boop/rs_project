@@ -1,5 +1,7 @@
-from django.shortcuts import render
+# Marián Ligocký
+# MUNI FI, Brno
 
+from django.shortcuts import render
 from web.algorithms.evaluator import Evaluator
 from web.algorithms.naive_rec import load_data, get_most_popular
 from web.algorithms.random_recommender import random_rating_recommender

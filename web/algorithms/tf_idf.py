@@ -9,6 +9,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from typing import Literal
 
 # Download NLTK resources (if not already downloaded)
 nltk.download('punkt')
@@ -28,7 +29,7 @@ def preprocess(text):
     # Join tokens into a single string
     return ' '.join(preprocessed_text)
 
-def tf_idf_cosine_rec(df, category, title_string, mode="live"):
+def tf_idf_cosine_rec(df, category, title_string, mode:  Literal["live", "eval"] = "live"):
 
     if not mode == "eval":
         # Filter DataFrame by category
@@ -56,7 +57,7 @@ def tf_idf_cosine_rec(df, category, title_string, mode="live"):
     if mode == "eval":
         # In case there are the same articles in history and impression column
         cosine_similarities = cosine_similarities[cosine_similarities != 1]
-        return np.sum(cosine_similarities)/len(cosine_similarities)
+        return np.sum(cosine_similarities)#/len(cosine_similarities)
 
     # Get indices of top recommendations
     top_indices = cosine_similarities.argsort()[:-1][::-1]

@@ -47,6 +47,8 @@ class Evaluator:
     def __get_eval_scores(self, preds):
         preds = preds.copy()
         preds['Ranks'] = preds['Scores'].apply(lambda scores: (np.argsort(np.argsort(scores)[::-1]) + 1).tolist())
+        # maybe this is better?
+        # preds['Ranks'] = preds['Scores'].apply(lambda scores: [sorted(scores, reverse=True).index(value) + 1 for value in scores])
         preds['EvalScores'] = preds['Ranks'].apply(lambda ranks: [round(1./rank, 5) for rank in ranks])
         return preds[['ID', 'EvalScores']]
 
