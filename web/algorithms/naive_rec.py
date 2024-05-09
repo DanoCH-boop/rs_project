@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 
 def load_data():
-    news_columns = ['ID', 'Category', 'Subcategory', 'Headline', 'Abstract']
+    news_columns = ['ID', 'Category', 'Subcategory', 'Title', 'Abstract']
     news_df = pd.read_csv('datasets/MINDsmall_dev/news.tsv', sep='\t', names=news_columns, usecols=[0, 1, 2, 3, 4])
 
     beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']

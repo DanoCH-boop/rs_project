@@ -23,6 +23,7 @@ def find_shared_subcats(news_df):
 
     return shared_subcategories
 
+
 def load_cat_dict(category):
     # File path from which to read the dictionary
     file_path = f"datasets/category_sims/{category}.txt"
@@ -46,6 +47,60 @@ def load_cat_dict(category):
 
 
 def draw_graph_sim_cat(news_df):
+    # Create an empty graph
+    G = nx.Graph()
+
+    # Remove low occurence categories like ("kids", "northamerica", "middleeast")
+    categories = news_df['Category'].unique()[:-3]
+
+    category_counts = news_df['Category'].value_counts()
+    category_size_map = category_counts.to_dict()
+
+    # Calculate node sizes based on occurence_dict
+    max_occurrence = max(category_size_map.values())
+    min_occurrence = min(category_size_map.values())
+
+    node_sizes = [1000 + (10000 - 1000) * ((category_size_map[cat] - min_occurrence) / (max_occurrence - min_occurrence)) for cat in categories]
+
+    # Colors for nodes
+    colors = [
+        '#1f77b4', '#8c564b', '#98df8a', '#c7c7c7', '#aec7e8',
+        '#bcbd22', '#c49c94', '#d62728', '#dbdb8d', '#e377c2',
+        '#ff7f0e', '#ff9896', '#17becf', '#9467bd'
+    ]
+
+    data_dict = load_cat_dict("categories")
+
+    # Add nodes for and edges between categories
+    for i in range(len(categories)):
+        cat1 = categories[i]
+        G.add_node(cat1, node_type='category')
+        for j in range(i + 1, len(categories)):
+            cat2 = categories[j]
+            print(cat1, cat2)
+            sim_score = data_dict[(categories[i], categories[j])]
+            # sim_score = sim_score if sim_score < 20 else 20
+            G.add_edge(cat1, cat2, weight=sim_score)
+
+    # Visualize the graph
+    pos = nx.spring_layout(G)  # Layout algorithm for graph visualization
+    plt.figure(figsize=(16, 9))
+
+    # Draw nodes and edges
+    nx.draw_networkx_nodes(G, pos, node_size=node_sizes, node_color=colors)
+    nx.draw_networkx_edges(G, pos, width=0.2, alpha=0.1)
+
+    # Add labels and legend
+    labels = {node: node for node in G.nodes()}
+    nx.draw_networkx_labels(G, pos, labels, font_size=14, font_color='black')
+
+    plt.title('Category Similarity Graph using TF-IDF and Cosine Similiarity', fontsize=24)
+    plt.tight_layout(pad=0.5)
+    plt.axis('off')
+    plt.savefig("graphs/fig_cats.pdf")
+
+
+def draw_graph_sim_subcat(news_df):
     # Create an empty graph
     G = nx.Graph()
 
@@ -125,9 +180,67 @@ def draw_graph_sim_cat(news_df):
     plt.axis('off')
     plt.savefig("graphs/fig.pdf")
 
-def compute_sims(news_df):
-   
 
+def compute_sims_cat(news_df):
+    categories = news_df['Category'].unique()
+
+    # Dictionary to store preprocessed titles by category
+    category_titles = {}
+
+    for category in categories:
+        # Filter news for category
+        category_news = news_df[news_df['Category'] == category]
+
+        titles = category_news['Title'].tolist()
+        preprocessed_titles = [preprocess(title) for title in titles]
+        category_titles[category] = preprocessed_titles
+
+    # Calculate TF-IDF vectors and cosine similarity for unique pairs of categories
+    results = {}
+
+    for i in range(len(categories)):
+        cat1 = categories[i]
+        titles1 = category_titles[cat1]
+        for j in range(i + 1, len(categories)):
+            cat2 = categories[j]
+            # Combine titles for each pair of categories
+            titles2 = category_titles[cat2]
+            all_titles = titles1 + titles2
+            
+            # Compute TF-IDF vectors
+            tfidf_vectorizer = TfidfVectorizer(stop_words='english')
+            tfidf_matrix = tfidf_vectorizer.fit_transform(all_titles)
+            
+            # Calculate pairwise cosine similarity
+            similarity_matrix = cosine_similarity(tfidf_matrix)
+            
+            # Extract similarities between titles from cat1 and cat2
+            similarity_scores = similarity_matrix[:len(titles1), len(titles1):]
+            
+            # Compute average similarity
+            average_similarity = similarity_scores.sum()/len(titles2)
+            
+            # Store results
+            results[(cat1, cat2)] = round(average_similarity, 5)
+
+        sorted_results = {}
+
+    for cat1 in categories:
+        # Filter results by cat1
+        filtered_results = {pair: similarity for pair, similarity in results.items() if pair[0] == cat1}
+        
+        # Sort filtered results by similarity value in descending order
+        sorted_filtered_results = dict(sorted(filtered_results.items(), key=lambda item: item[1], reverse=True))
+        
+        # Append sorted results to main dictionary
+        sorted_results.update(sorted_filtered_results)
+
+    # Save results
+    with open("categories.txt", 'w') as file:
+        file.write(str(sorted_results))
+
+
+def compute_sims_subcat(news_df):
     categories = news_df['Category'].unique()
 
     for category in categories:
@@ -159,7 +272,7 @@ def compute_sims(news_df):
                 all_titles = titles1 + titles2
                 
                 # Compute TF-IDF vectors
-                tfidf_vectorizer = TfidfVectorizer(stop_words='english')
+                tfidf_vectorizer = TfidfVectorizer()
                 tfidf_matrix = tfidf_vectorizer.fit_transform(all_titles)
                 
                 # Calculate pairwise cosine similarity
@@ -190,6 +303,7 @@ def compute_sims(news_df):
         with open(f"{category}.txt", 'w') as file:
             file.write(str(sorted_results))
 
+
 def find_sim_subcat(dictionary, category_str):
     max_score = -1 # Initialize maximum score
     best_sim = [category_str]  # Initialize tuple with the highest score
@@ -203,6 +317,7 @@ def find_sim_subcat(dictionary, category_str):
     best_sim.remove(category_str)
 
     return best_sim[0]
+
 
 def sim_cat_rec(beh_df, news_df, user_id='U81540'):
     # Loading behaviors again so user can be foind
@@ -242,11 +357,17 @@ if __name__ == "__main__":
     beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
     beh_df = pd.read_csv('dataset/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
 
+    # Compuate similiarities between categories and write them into a file
+    #compute_sims_cat(news_df)
+
+    # Draw graph of similiarties between categories
+    #draw_graph_sim_cat(news_df)
+
     # Compuate similiarities between subcategories and write them into a file
-    #compute_sims(news_df)
+    #compute_sims_subcat(news_df)
 
     # Draw graph of similiarties between subcategories
-    #draw_graph_sim_cat(news_df)
+    #draw_graph_sim_subcat(news_df)
 
     # Get recommendations for a certain user
     result_df = sim_cat_rec(beh_df, news_df, user_id='U81540')
