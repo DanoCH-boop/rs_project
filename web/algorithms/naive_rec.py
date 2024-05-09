@@ -93,7 +93,7 @@ def get_coeficcients_most_popular(beh_df):
 
 # Most Popular by categories
 
-def get_top_categories(beh_df, news_df, user_id):
+def get_top_categories(beh_df, news_df, user_id, count=5):
     # Filter behavior data for the given user
     user_data = beh_df[beh_df['UserID'] == user_id]
     
@@ -104,8 +104,8 @@ def get_top_categories(beh_df, news_df, user_id):
     category_counts = news_df[news_df['ID'].isin(history.split())].groupby('Category').size()
     subcategory_counts = news_df[news_df['ID'].isin(history.split())].groupby('Subcategory').size()
     
-    top_categories = category_counts.nlargest(5).index.tolist()
-    top_subcategories = subcategory_counts.nlargest(5).index.tolist()
+    top_categories = category_counts.nlargest(count).index.tolist()
+    top_subcategories = subcategory_counts.nlargest(count).index.tolist()
     
     return top_categories, top_subcategories
 
@@ -126,9 +126,6 @@ def select_random_articles(news_df, categories, subcategories):
         
         
     return selected_category_articles, selected_subcategory_articles
-
-
-
 
 def example():
     # Example usage:
@@ -154,4 +151,3 @@ def example():
     top_articles = news_df[news_df['ID'].isin(top_articles.keys())]
 
     return top_articles
-

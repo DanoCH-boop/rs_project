@@ -10,6 +10,7 @@ from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from typing import Literal
+import math
 
 # Download NLTK resources (if not already downloaded)
 nltk.download('punkt')
@@ -17,6 +18,11 @@ nltk.download('stopwords')
 nltk.download('wordnet')
 
 def preprocess(text):
+    # checks whether the title or astract are NaN,
+    # but its better to clear the dataset of these values 
+    if (not isinstance(text, str)) and math.isnan(text):
+        return ""
+
     stop_words = set(stopwords.words('english'))
     lemmatizer = WordNetLemmatizer()
     
@@ -29,26 +35,32 @@ def preprocess(text):
     # Join tokens into a single string
     return ' '.join(preprocessed_text)
 
-def tf_idf_cosine_rec(df, category, title_string, mode:  Literal["live", "eval"] = "live"):
+def tf_idf_cosine_rec(
+    df,
+    category,
+    sim_col_string,
+    mode:  Literal["live", "eval"] = "live", 
+    sim_col: Literal["Title", "Abstract"] = "Title"
+):
 
     if not mode == "eval":
         # Filter DataFrame by category
         df = df[df['Category'] == category]
     
     # Preprocess input title
-    preprocessed_input_title = preprocess(title_string)
+    preprocessed_input_sim_str = preprocess(sim_col_string)
     
     # Preprocess titles in the DataFrame
-    df['preprocessed_title'] = df['Title'].apply(preprocess)
+    df['preprocessed_sim_str'] = df[sim_col].apply(preprocess)
     
     # Initialize TF-IDF vectorizer
     tfidf_vectorizer = TfidfVectorizer()
     
     # Compute TF-IDF matrix
-    tfidf_matrix = tfidf_vectorizer.fit_transform(df['preprocessed_title'])
+    tfidf_matrix = tfidf_vectorizer.fit_transform(df['preprocessed_sim_str'])
     
     # Compute TF-IDF vector for input title
-    input_tfidf = tfidf_vectorizer.transform([preprocessed_input_title])
+    input_tfidf = tfidf_vectorizer.transform([preprocessed_input_sim_str])
     
     # Calculate cosine similarity between input title and all titles in the DataFrame
     # We have to explicitly set the dtype to 'float32' because of the deletion of values == 1.0 later on
@@ -65,9 +77,8 @@ def tf_idf_cosine_rec(df, category, title_string, mode:  Literal["live", "eval"]
     top_five = top_indices[:5]
 
     # Return recommended article titles
-    recommended_titles = df.iloc[top_five]['Title'].tolist()
+    recommended_titles = df.iloc[top_five]['ID'].tolist()
     return recommended_titles
-
 
 if __name__ == "__main__":
 

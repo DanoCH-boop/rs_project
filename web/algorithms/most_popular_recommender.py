@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import pandas as pd
 
-def most_popular_recommender(beh_df, news_df):
+def most_popular_recommender(beh_df, news_df, category_filter=[]):
     def find_index(series, name):
         try:
             index = series.index.get_loc(name) + 1  # Adding 1 to start index from 1
@@ -24,8 +24,15 @@ def most_popular_recommender(beh_df, news_df):
         all_article_ids = []
 
         for ids in split_ids:
-            all_article_ids.extend([id.strip('-1') for id in ids if id.endswith('-1')])
+            all_article_ids.extend([id.split("-")[0] for id in ids if id.endswith('-1')])
 
+        # Filter out articles not in wanted subcategories
+        if len(category_filter) != 0:
+            for article_id in all_article_ids:
+                art_subcat = news_df[news_df["ID"] == article_id]['Subcategory'].values[0]
+                if not art_subcat in category_filter:
+                    all_article_ids.remove(article_id)
+                
         all_article_ids_series = pd.Series(all_article_ids)
 
         popular_clicked_articles = all_article_ids_series.value_counts()
