@@ -4,6 +4,7 @@
 from django.shortcuts import render
 from web.algorithms.evaluator import Evaluator
 from web.algorithms.naive_rec import load_data, get_most_popular
+from web.algorithms.popular_category_combinations import category_combinations_recommender
 from web.algorithms.random_recommender import random_rating_recommender
 from web.algorithms.most_popular_recommender import most_popular_recommender
 from web.algorithms.tf_idf_recommender import tf_idf_cosine_recommender
@@ -42,6 +43,7 @@ def evaluation(request):
         "Random recommender": random_rating_recommender,
         "Most popular recommender": most_popular_recommender,
         "Tf-idf recommender": tf_idf_cosine_recommender,
+        "Category combinations recommender": category_combinations_recommender
         # "Sentence embedding recommender": sentence_embedding_recommender,
     }
     evals = [{

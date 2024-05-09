@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 
 # Dominik Adam
 # MUNI FI, Brno
@@ -7,8 +8,7 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score
 
 class Evaluator:
-    def __init__(self):
-        dataset_dir = "datasets/MINDsmall_dev"
+    def __init__(self, dataset_dir = "datasets/MINDsmall_dev", truncate_behaviors=100):
         self._behaviors_path = f"{dataset_dir}/behaviors.tsv"
         self._news_path = f"{dataset_dir}/news.tsv"
         self._entity_embedding_path = f"{dataset_dir}/entity_embedding.vec"
@@ -20,7 +20,7 @@ class Evaluator:
 
         beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
         # TODO Remove head for evaluation from the line under, potentially optimize load time of evaluation page
-        self._behaviors = pd.read_csv(self._behaviors_path, sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4]).head(100)
+        self._behaviors = pd.read_csv(self._behaviors_path, sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4]).head(truncate_behaviors)
 
     def __dcg_score(self, y_true, y_score, k=10):
         order = np.argsort(y_score)[::-1]
