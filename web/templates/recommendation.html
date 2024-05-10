@@ -1,0 +1,38 @@
+{% extends "_base.html" %}
+
+{% block title %}Article: {{ article.Headline }}{% endblock %}
+
+{% block content %}
+<main class="pt-8 pb-16 lg:pt-16 lg:pb-24 bg-white dark:bg-gray-900 antialiased">
+    <ul>
+        <li>Random Recommendations:
+            <ul>
+                {% for item in result.random %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li>Most Popular Recommendations:
+            <ul>
+                {% for item in result.most_popular %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li>TF-IDF Recommendations:
+            <ul>
+                {% for item in result.td_idf %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li>Similar Category Recommendations:
+            <ul>
+                {% for item in result.sim_cat %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </li>
+    </ul>
+</main>
+{% endblock content %}
