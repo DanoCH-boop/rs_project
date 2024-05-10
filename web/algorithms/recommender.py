@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 from web.algorithms.most_popular_recommender import most_popular_recommender
+from web.algorithms.popular_category_combinations import category_combinations_recommender
 from web.algorithms.random_recommender import random_rating_recommender
 from web.algorithms.similiar_category_combinations import sim_cat_rec
 from web.algorithms.tf_idf_recommender import tf_idf_cosine_recommender
@@ -96,11 +97,16 @@ class Recommender:
         sim_cat_rec_scores_df = sim_cat_rec(self._row_notunique, self._news_df, self._userid)
         sim_cat_best = self.__best_score_ids(self._ids, sim_cat_rec_scores_df)
 
+        # Category combinations
+        category_combinations_scores_df = category_combinations_recommender(self._row_unique, self._news_df)
+        category_combinations_best = self.__best_score_ids(self._ids, category_combinations_scores_df)
+
         result = {
             'random': random_popular_best,
             'most_popular': most_popular_best, 
             'td_idf': td_idf_best,
-            'sim_cat': sim_cat_best
+            'sim_cat': sim_cat_best,
+            'category_combinations': category_combinations_best
         }
 
         return result

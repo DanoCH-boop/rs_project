@@ -33,6 +33,13 @@
                 {% endfor %}
             </ul>
         </li>
+         <li>Category combination Recommendations:
+            <ul>
+                {% for item in result.category_combinations %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </li>
     </ul>
 </main>
 {% endblock content %}
