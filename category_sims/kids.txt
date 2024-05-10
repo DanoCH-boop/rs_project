@@ -1,0 +1,1 @@
+{('fun', 'video'): 0.03624, ('fun', 'science'): 0.0, ('fun', 'people-places'): 0.0, ('fun', 'animals'): 0.0, ('video', 'animals'): 0.32239, ('video', 'science'): 0.0, ('video', 'people-places'): 0.0, ('science', 'people-places'): 0.0, ('science', 'animals'): 0.0, ('people-places', 'animals'): 0.0}

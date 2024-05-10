@@ -26,7 +26,7 @@ def find_shared_subcats(news_df):
 
 def load_cat_dict(category):
     # File path from which to read the dictionary
-    file_path = f"datasets/category_sims/{category}.txt"
+    file_path = f"category_sims/{category}.txt"
 
     try:
         with open(file_path, 'r') as file:
@@ -88,7 +88,7 @@ def draw_graph_sim_cat(news_df):
 
     # Draw nodes and edges
     nx.draw_networkx_nodes(G, pos, node_size=node_sizes, node_color=colors)
-    nx.draw_networkx_edges(G, pos, width=0.2, alpha=0.1)
+    nx.draw_networkx_edges(G, pos, width=0.3, alpha=0.5)
 
     # Add labels and legend
     labels = {node: node for node in G.nodes()}
@@ -156,7 +156,7 @@ def draw_graph_sim_subcat(news_df):
             pass
         else:
             nx.draw_networkx_nodes(G, pos, nodelist=[node], node_size=100, node_color=node_color)
-    nx.draw_networkx_edges(G, pos, width=0.2, alpha=0.05)
+    nx.draw_networkx_edges(G, pos, width=0.2, alpha=0.1)
 
     # Add labels and legend
     labels = {node: node for node in G.nodes()}

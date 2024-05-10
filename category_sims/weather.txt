@@ -1,0 +1,1 @@
+{('weathertopstories', 'weatherfullscreenmaps'): 25.35491}
