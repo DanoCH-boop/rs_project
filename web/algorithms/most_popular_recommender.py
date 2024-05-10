@@ -14,12 +14,13 @@ def most_popular_recommender(beh_df, news_df, category_filter=[]):
     for index, row in beh_df.iterrows():
 
         date = row['Time']
-        date_ = datetime.strptime(date, '%m/%d/%Y %I:%M:%S %p')
-        start_date = date_ - timedelta(hours=24)
-        start_date = start_date.strftime('%m/%d/%Y %I:%M:%S %p')
+        format = '%m/%d/%Y %I:%M:%S %p'
+        end_date = datetime.strptime(date, format)
+        start_date = end_date - timedelta(hours=24)
 
-        filtered_df = beh_df[(beh_df['Time'] >= start_date) & (beh_df['Time'] < date)]
-        split_ids = filtered_df['Impression'].str.split()
+        filter_df = beh_df[(pd.to_datetime(beh_df['Time'], format=format) >= start_date) & (
+                pd.to_datetime(beh_df['Time'], format=format) < end_date)]
+        split_ids = filter_df['Impression'].str.split()
 
         all_article_ids = []
 
