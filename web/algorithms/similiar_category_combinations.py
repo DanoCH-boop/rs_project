@@ -339,15 +339,16 @@ def sim_cat_rec(beh_df, news_df, user_id='U81540'):
 
 
     # Get most popular articles of each category
-    result_df = most_popular_recommender(beh_df.head(1000), news_df, fav_cats)
+    result_df = most_popular_recommender(beh_df, news_df, fav_cats)
 
     return result_df
 
 if __name__ == "__main__":
 
     # Load dataset
-    dataset_dir = "datasets/MINDsmall_dev"
+    dataset_dir = "../../datasets/MINDsmall_dev"
     news_path = f"{dataset_dir}/news.tsv"
+    beh_path = f"{dataset_dir}/behaviors.tsv"
 
     news_columns = ['ID', 'Category', 'Subcategory', 'Title']
     news_df = pd.read_csv(news_path, sep='\t', names=news_columns, usecols=[0, 1, 2, 3])
@@ -355,7 +356,7 @@ if __name__ == "__main__":
     # news_df.dropna(inplace=True)
 
     beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
-    beh_df = pd.read_csv('dataset/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
+    beh_df = pd.read_csv(beh_path, sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
 
     # Compuate similiarities between categories and write them into a file
     #compute_sims_cat(news_df)
@@ -370,4 +371,5 @@ if __name__ == "__main__":
     #draw_graph_sim_subcat(news_df)
 
     # Get recommendations for a certain user
-    result_df = sim_cat_rec(beh_df, news_df, user_id='U81540')
+    result_df = sim_cat_rec(beh_df.head(100), news_df, user_id='U81540')
+    print(result_df["Scores"].values)
