@@ -110,7 +110,7 @@ def _calculate_popularity_of_news(beh_df, row):
         if row_index == 0:
             impression_coef_array[sliced_id] = 0
         else:
-            impression_coef_array[sliced_id] = (1 - (int(row_index) - 1) / (num_rows - 1))
+            impression_coef_array[sliced_id] = (1 - (int(row_index) - 1) / (num_rows ))
 
     return impression_coef_array
 
@@ -176,7 +176,7 @@ def load_data(truncate_behaviors=10):
 
 
 def category_combinations_recommender(beh_df, news_df):
-    beh_full_df, _ = load_data(1000)  # because beh_df might contain just one line of data
+    beh_full_df, _ = load_data(100)  # because beh_df might contain just one line of data
     category_coccurrence_df, user_category_matrix, conditional_prob_df = _create_cooccurence_matrix(beh_full_df,
                                                                                                     news_df)
 
@@ -189,7 +189,7 @@ def category_combinations_recommender(beh_df, news_df):
 
 
 if __name__ == '__main__':
-    evaluator = Evaluator("../../datasets/MINDsmall_dev", truncate_behaviors=1000)
+    evaluator = Evaluator("../../datasets/MINDsmall_dev", truncate_behaviors=100)
     recommenders = {
         "Popular category combinations": category_combinations_recommender,
         "popular": most_popular_recommender,

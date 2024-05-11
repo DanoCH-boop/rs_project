@@ -56,7 +56,7 @@ def most_popular_recommender(beh_df, news_df, category_filter=[]):
             if row_index == 0:
                 impression_coef_array.append(0)
             else:
-                impression_coef_array.append(1 - (int(row_index) - 1) / (num_rows - 1))
+                impression_coef_array.append(1 - (int(row_index) - 1) / (num_rows))
 
         result_df.loc[len(result_df.index)] = [index + 1, impression_coef_array] 
     return result_df
