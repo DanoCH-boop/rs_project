@@ -67,6 +67,15 @@
             {% endfor %}
         </div>
 
+
+        <h2 class="text-2xl font-bold mt-20">Recommended by category combinations</h2>
+
+        <div class="grid gap-8 lg:grid-cols-3 mt-6">
+            {% for index, article in recommended_articles.category_combinations %}
+                {% include "recommend-article-box.html" with index=index %}
+            {% endfor %}
+        </div>
+
     </div>
     
 </main>
