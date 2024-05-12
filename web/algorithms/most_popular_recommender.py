@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import pandas as pd
 
-def most_popular_recommender(beh_df, news_df, category_filter=[]):
+def most_popular_recommender(beh_df, news_df, category_filter=[], recommender=False):
     def find_index(series, name):
         try:
             index = series.index.get_loc(name) + 1  # Adding 1 to start index from 1
@@ -12,15 +12,19 @@ def most_popular_recommender(beh_df, news_df, category_filter=[]):
     result_df = pd.DataFrame(columns=['ID', 'Scores'])
     
     for index, row in beh_df.iterrows():
-
         date = row['Time']
-        date_ = datetime.strptime(date, '%m/%d/%Y %I:%M:%S %p')
-        start_date = date_ - timedelta(hours=24)
-        start_date = start_date.strftime('%m/%d/%Y %I:%M:%S %p')
+        format = '%m/%d/%Y %I:%M:%S %p'
+        end_date = datetime.strptime(date, format)
+        start_date = end_date - timedelta(hours=24)
 
-        filtered_df = beh_df[(beh_df['Time'] >= start_date) & (beh_df['Time'] < date)]
-        split_ids = filtered_df['Impression'].str.split()
+        if recommender:
+            filter_df = beh_df[(pd.to_datetime(beh_df['Time'], format=format) >= start_date) & (
+                    pd.to_datetime(beh_df['Time'], format=format) <= end_date)]
+        else:
+            filter_df = beh_df[(pd.to_datetime(beh_df['Time'], format=format) >= start_date) & (
+                pd.to_datetime(beh_df['Time'], format=format) < end_date)]
 
+        split_ids = filter_df['Impression'].str.split()
         all_article_ids = []
 
         for ids in split_ids:
@@ -51,11 +55,10 @@ def most_popular_recommender(beh_df, news_df, category_filter=[]):
             sliced_id = id.split("-")[0]
 
             row_index = find_index(sorted_popular, sliced_id)
-
             if row_index == 0:
                 impression_coef_array.append(0)
             else:
-                impression_coef_array.append(1 - (int(row_index) - 1) / (num_rows - 1))
+                impression_coef_array.append(1 - (int(row_index)) / (num_rows))
 
         result_df.loc[len(result_df.index)] = [index + 1, impression_coef_array] 
     return result_df

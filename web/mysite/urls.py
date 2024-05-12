@@ -12,5 +12,5 @@ urlpatterns = [
     path('', index, name='index'),
     path('category/<slug:category>/', index, name='index_by_category'),
     path('evaluation', evaluation),
-	path('recommend/<slug:row_id>',recommend)
+	path('recommend/',recommend, name='recommend')
 ]

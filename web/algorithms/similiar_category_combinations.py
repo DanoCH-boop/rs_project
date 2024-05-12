@@ -319,7 +319,7 @@ def find_sim_subcat(dictionary, category_str):
     return best_sim[0]
 
 
-def sim_cat_rec(beh_df, news_df, user_id='U81540'):
+def sim_cat_rec(beh_df, news_df, user_id='U81540', recommender=False):
     # Loading behaviors again so user can be foind
     beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
     beh_df_user = pd.read_csv('datasets/MINDsmall_dev/behaviors.tsv', sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4])
@@ -339,7 +339,7 @@ def sim_cat_rec(beh_df, news_df, user_id='U81540'):
 
 
     # Get most popular articles of each category
-    result_df = most_popular_recommender(beh_df.head(1000), news_df, fav_cats)
+    result_df = most_popular_recommender(beh_df.head(1000), news_df, fav_cats, recommender)
 
     return result_df
 

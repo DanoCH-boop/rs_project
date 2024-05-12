@@ -1,38 +1,73 @@
 {% extends "_base.html" %}
 
-{% block title %}Article: {{ article.Headline }}{% endblock %}
+{% block title %}Row: {{ row.id }}{% endblock %}
 
 {% block content %}
 <main class="pt-8 pb-16 lg:pt-16 lg:pb-24 bg-white dark:bg-gray-900 antialiased">
-    <ul>
-        <li>Random Recommendations:
-            <ul>
-                {% for item in result.random %}
-                    <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-        </li>
-        <li>Most Popular Recommendations:
-            <ul>
-                {% for item in result.most_popular %}
-                    <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-        </li>
-        <li>TF-IDF Recommendations:
-            <ul>
-                {% for item in result.td_idf %}
-                    <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-        </li>
-        <li>Similar Category Recommendations:
-            <ul>
-                {% for item in result.sim_cat %}
-                    <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-        </li>
-    </ul>
+    <div class="px-4 mx-auto max-w-screen-xl ">
+        <article
+                class="mx-auto w-full max-w-2xl format format-sm sm:format-base lg:format-lg format-blue dark:format-invert">
+            
+            <header class="mb-4 lg:mb-6 not-format">
+                <h1 class="mb-4 text-3xl font-extrabold leading-tight text-gray-900 lg:mb-6 lg:text-4xl dark:text-white">
+                    Row ID: {{row.id}}</h1>
+            </header>
+            <p class="text-lg mb-6">User ID: {{row.userid}}</p>
+            
+            <div className="max-w-md mx-auto">
+                <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" action="{% url 'recommend' %}" method="GET">
+                    <div className="mb-4">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="row_id">Enter Row ID:</label>
+                        <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="row_id" name="row_id" type="text" placeholder="Row ID">
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+        </article>
+
+        <div className="flex flex-center">
+        
+        </div>
+
+        <h2 class="text-2xl font-bold mt-20">Recommended by random</h2>
+
+        <div class="grid gap-8 lg:grid-cols-3 mt-6">
+            {% for index, article in recommended_articles.random %}
+                {% include "recommend-article-box.html" with index=index %}
+            {% endfor %}
+        </div>
+
+        <h2 class="text-2xl font-bold mt-20">Recommended by TF-IDF</h2>
+
+        <div class="grid gap-8 lg:grid-cols-3 mt-6">
+            {% for index, article in recommended_articles.td_idf %}
+                {% include "recommend-article-box.html" with index=index %}
+            {% endfor %}
+        </div>
+
+
+        <h2 class="text-2xl font-bold mt-20">Recommended by most popular</h2>
+
+        <div class="grid gap-8 lg:grid-cols-3 mt-6">
+            {% for index, article in recommended_articles.most_popular %}
+                {% include "recommend-article-box.html" with index=index %}
+            {% endfor %}
+        </div>
+
+        <h2 class="text-2xl font-bold mt-20">Recommended by most popular similar subcategories</h2>
+
+        <div class="grid gap-8 lg:grid-cols-3 mt-6">
+            {% for index, article in recommended_articles.sim_cat %}
+                {% include "recommend-article-box.html" with index=index %}
+            {% endfor %}
+        </div>
+
+    </div>
+    
 </main>
 {% endblock content %}
