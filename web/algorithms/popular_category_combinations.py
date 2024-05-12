@@ -1,8 +1,10 @@
-import random
+from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
+
 from web.algorithms.evaluator import Evaluator
+from web.algorithms.most_popular_recommender import most_popular_recommender
 
 
 def _create_cooccurence_matrix(beh_df, news_df):
@@ -64,8 +66,57 @@ def _recommend_category(user_likes, category_cooccurrence_df, user_category_matr
         return "No recommendation available based on current preferences"
 
 
+def _calculate_popularity_of_news(beh_df, row):
+    def find_index(series, name):
+        try:
+            index = series.index.get_loc(name) + 1  # Adding 1 to start index from 1
+            return index
+        except KeyError:
+            return 0
+
+    date = row['Time']
+    format = '%m/%d/%Y %I:%M:%S %p'
+    end_date = datetime.strptime(date, format)
+    start_date = end_date - timedelta(hours=24)
+
+    filter_df = beh_df[(pd.to_datetime(beh_df['Time'], format=format) >= start_date) & (
+            pd.to_datetime(beh_df['Time'], format=format) < end_date)]
+    split_ids = filter_df['Impression'].str.split()
+
+    all_article_ids = []
+
+    for ids in split_ids:
+        all_article_ids.extend([id.split("-")[0] for id in ids if id.endswith('-1')])
+
+    all_article_ids_series = pd.Series(all_article_ids)
+
+    popular_clicked_articles = all_article_ids_series.value_counts()
+
+    sorted_popular = popular_clicked_articles.sort_values(ascending=False)
+
+    num_rows = sorted_popular.shape[0]
+
+    impression_ids = row['Impression'].split()
+
+    split_Impression_list = [word for sublist in impression_ids for word in sublist.split()]
+
+    impression_coef_array = {}
+
+    for id in split_Impression_list:
+        sliced_id = id.split("-")[0]
+
+        row_index = find_index(sorted_popular, sliced_id)
+
+        if row_index == 0:
+            impression_coef_array[sliced_id] = 0
+        else:
+            impression_coef_array[sliced_id] = (1 - (int(row_index) - 1) / (num_rows ))
+
+    return impression_coef_array
+
+
 # Function to calculate scores for impressions
-def _calculate_impression_scores(row, user_category_matrix, category_cooccurrence_df, news_df):
+def _calculate_impression_scores(row, user_category_matrix, category_cooccurrence_df, news_df, beh_df):
     # Create a mapping of News ID to Subcategory from news_df
     news_id_to_category = news_df.set_index('ID')['Subcategory'].to_dict()
 
@@ -80,43 +131,68 @@ def _calculate_impression_scores(row, user_category_matrix, category_cooccurrenc
 
     # Initialize scores for each impression
     scores = []
-    categories_with_scores = []
+    popularity_of_news_until_now = _calculate_popularity_of_news(beh_df, row)
 
     for impression in impressions:
         news_id, clicked = impression.split('-')
+
         category = news_id_to_category.get(news_id, None)
 
         if category and category in category_cooccurrence_df.columns:
+            normalized_cooccurrence = category_cooccurrence_df[category] / category_cooccurrence_df[category].max()
+            normalized_preferences = user_preferences / user_preferences.max()
+            # Calculate category score based on co-occurrence with user's preferred categories
+            score = sum(normalized_preferences * normalized_cooccurrence)
+
             # Calculate score based on co-occurrence with user's preferred categories
             score = sum(user_preferences * category_cooccurrence_df[category])
+
+            # Calculate popularity score based on the number of times the news was clicked
+            popularity_score = popularity_of_news_until_now.get(news_id, 0)
+
+            # Combine the two scores
+            score = score + popularity_score
         else:
             score = 0  # Default score if category is unknown
 
         scores.append(score)
-        categories_with_scores.append((category, score))
 
     return scores
 
 
+def load_data(truncate_behaviors=10):
+    dataset_dir = "../../datasets/MINDsmall_dev"
+
+    behavior_path = f"{dataset_dir}/behaviors.tsv"
+    beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
+    behaviors = pd.read_csv(behavior_path, sep='\t', names=beh_columns, usecols=[0, 1, 2, 3, 4]).head(
+        truncate_behaviors)
+
+    news_path = f"{dataset_dir}/news.tsv"
+    news_columns = ['ID', 'Category', 'Subcategory', 'Title', 'Abstract']
+    news = pd.read_csv(news_path, sep='\t', names=news_columns, usecols=[0, 1, 2, 3, 4])
+
+    return behaviors, news
+
+
 def category_combinations_recommender(beh_df, news_df):
-    category_cooccurrence_df, user_category_matrix, conditional_prob_df = _create_cooccurence_matrix(beh_df, news_df)
+    beh_full_df, _ = load_data(100)  # because beh_df might contain just one line of data
+    category_coccurrence_df, user_category_matrix, conditional_prob_df = _create_cooccurence_matrix(beh_full_df,
+                                                                                                    news_df)
 
     # Apply the function to each row in beh_df to get scores for each impression
     beh_df['Scores'] = beh_df.apply(_calculate_impression_scores,
-                                               args=(user_category_matrix, category_cooccurrence_df, news_df), axis=1)
+                                    args=(user_category_matrix, category_coccurrence_df, news_df, beh_df),
+                                    axis=1)
 
-    # RANDOM RECOMMENDER TO SHOW SCORE
-    beh_df['NewsOptions'] = beh_df['Impression'].str.split().apply(
-        lambda impressions: ' '.join([impression[:-2] for impression in impressions]))
-    beh_df['Scores_original'] = beh_df['NewsOptions'].str.split().apply(
-        lambda impressions: [round(random.random(), 5) for _ in impressions])
     return beh_df[['ID', 'Scores']]
 
 
 if __name__ == '__main__':
-    evaluator = Evaluator("../../datasets/MINDsmall_dev", truncate_behaviors=10000)
+    evaluator = Evaluator("../../datasets/MINDsmall_dev", truncate_behaviors=100)
     recommenders = {
         "Popular category combinations": category_combinations_recommender,
+        "popular": most_popular_recommender,
     }
     evals = [{
         "name": name,
@@ -124,3 +200,12 @@ if __name__ == '__main__':
     } for name, recommender in recommenders.items()]
 
     print(evals)
+
+    #
+    print("Recommend best 5 articles")
+    beh_df, news_df = load_data()
+
+    beh_df = beh_df.head(1)
+    scores = category_combinations_recommender(beh_df, news_df)
+
+    print(scores)
