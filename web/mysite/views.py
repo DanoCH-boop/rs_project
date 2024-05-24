@@ -3,12 +3,12 @@
 
 from django.shortcuts import render
 from web.algorithms.evaluator import Evaluator
+from web.algorithms.recommender import Recommender
 from web.algorithms.naive_rec import load_data, get_most_popular
 from web.algorithms.popular_category_combinations import category_combinations_recommender
 from web.algorithms.random_recommender import random_rating_recommender
 from web.algorithms.most_popular_recommender import most_popular_recommender
 from web.algorithms.tf_idf_recommender import tf_idf_cosine_recommender
-from web.algorithms.sentence_embedding_recommender import sentence_embedding_recommender
 
 
 def index(request, category=None, page=1):
@@ -40,10 +40,10 @@ def article_detail(request, article_id):
 def evaluation(request):
     evaluator = Evaluator()
     recommenders = {
-        "Random recommender": random_rating_recommender,
+        #"Random recommender": random_rating_recommender,
         "Most popular recommender": most_popular_recommender,
-        "Tf-idf recommender": tf_idf_cosine_recommender,
-        "Category combinations recommender": category_combinations_recommender
+        #"Tf-idf recommender": tf_idf_cosine_recommender,
+        # "Category combinations recommender": category_combinations_recommender
         # "Sentence embedding recommender": sentence_embedding_recommender,
     }
     evals = [{
@@ -65,3 +65,23 @@ def evaluation(request):
         },
     ])
     return render(request, 'evaluation.html', {'recommenders': evals})
+ 
+
+def recommend(request):
+    # Get the row_id from the query parameters, defaulting to 46 if not provided
+    row_id = request.GET.get('row_id', 46)
+    
+    recommender = Recommender(row_id=row_id)
+    articles_df, beh_df = load_data()
+
+    result, userId = recommender.get_reccomendations()
+
+    recommended_articles = {}
+
+    row = {'id': row_id, 'userid': userId}
+
+    for key, value in result.items(): 
+        recommended_articles[key] = [(index + 1, article) for index, article in enumerate(articles_df[articles_df['ID'].isin(value)].to_dict('records'))]
+
+    return render(request, 'recommendation.html', {'row': row, 'recommended_articles': recommended_articles})
+

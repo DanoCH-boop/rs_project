@@ -161,7 +161,7 @@ def _calculate_impression_scores(row, user_category_matrix, category_cooccurrenc
 
 
 def load_data(truncate_behaviors=10):
-    dataset_dir = "../../datasets/MINDsmall_dev"
+    dataset_dir = "datasets/MINDsmall_dev"
 
     behavior_path = f"{dataset_dir}/behaviors.tsv"
     beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
@@ -189,7 +189,7 @@ def category_combinations_recommender(beh_df, news_df):
 
 
 if __name__ == '__main__':
-    evaluator = Evaluator("../../datasets/MINDsmall_dev", truncate_behaviors=100)
+    evaluator = Evaluator("datasets/MINDsmall_dev", truncate_behaviors=100)
     recommenders = {
         "Popular category combinations": category_combinations_recommender,
         "popular": most_popular_recommender,

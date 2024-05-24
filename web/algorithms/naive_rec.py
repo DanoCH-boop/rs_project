@@ -16,12 +16,15 @@ def load_data():
 
 # Most Popular
 
-def get_most_popular(date_str, beh_df):
-    date = datetime.strptime(date_str, '%m/%d/%Y %I:%M:%S %p')
-    start_date = date - timedelta(hours=24)
+def get_most_popular(date, beh_df):
     
-    filtered_df = beh_df[(beh_df['Time'] >= start_date) & (beh_df['Time'] < date)]
-    split_ids = filtered_df['Impression'].str.split()
+    format = '%m/%d/%Y %I:%M:%S %p'
+    end_date = datetime.strptime(date, format)
+    start_date = end_date - timedelta(hours=24)
+    filter_df = beh_df[(pd.to_datetime(beh_df['Time'], format=format) >= start_date) & (
+            pd.to_datetime(beh_df['Time'], format=format) < end_date)]
+
+    split_ids = filter_df['Impression'].str.split()
     start_date = start_date.strftime('%m/%d/%Y %I:%M:%S %p')
 
     all_article_ids = []
@@ -83,10 +86,10 @@ def get_coeficcients_most_popular(beh_df):
 
             row_index = find_index(sorted_popular, sliced_id)
 
-            if row_index == 0:
+            if row_index == 0 or num_rows == 1:
                 impression_coef_array.append(0)
             else:
-                impression_coef_array.append(1 - (int(row_index) - 1) / (num_rows - 1))
+                impression_coef_array.append(1 - (int(row_index) - 1) / (num_rows))
 
         result_df.loc[len(result_df.index)] = [index + 1, impression_coef_array] 
     return result_df

@@ -1,0 +1,15 @@
+<article
+        class="p-6 bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+    <div class="flex gap-2 items-center mb-2 text-gray-500">
+                  <span class="bg-blue-100 uppercase text-blue-700 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-primary-200 dark:text-primary-800">
+                      {{article.Category}}</span>
+        <span class="bg-blue-100 text-blue-700 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-primary-200 dark:text-primary-800">
+                      {{article.Subcategory}}</span>
+    </div>
+    <h1 class="mb-2 text-l font-bold tracking-tight  dark:text-white">Article Placement: {{index }}
+    </h1>
+    <h1 class="mb-2 text-l font-bold tracking-tight text-blue-700 dark:text-white">ID: {{article.ID}}
+    </h1>
+    <h2 class=" text-l  tracking-tight text-gray-900 dark:text-white">{{article.Title}}
+    </h2>
+</article>
