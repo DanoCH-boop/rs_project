@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 
+import matplotlib.pyplot as plt
 from web.algorithms.evaluator import Evaluator
 from web.algorithms.most_popular_recommender import most_popular_recommender
 
@@ -34,14 +35,20 @@ def _create_cooccurence_matrix(beh_df, news_df):
     category_cooccurrence_df = pd.DataFrame(category_cooccurrence, index=user_category_matrix.columns,
                                             columns=user_category_matrix.columns)
 
-    # Assuming 'category_cooccurrence_df' is your DataFrame
     # Sum across rows to get the total counts for each category
     total_likes_per_category = category_cooccurrence_df.sum(axis=0)
 
-    # Divide each element in a row by the total likes for the row category
-    conditional_prob_df = category_cooccurrence_df.div(total_likes_per_category, axis=1)
+    # Normalize matrix using Jaccard Coefficient
+    jaccard_cooccurrence_df = category_cooccurrence_df.copy()
 
-    return category_cooccurrence_df, user_category_matrix, conditional_prob_df
+    for i in range(len(jaccard_cooccurrence_df)):
+        for j in range(len(jaccard_cooccurrence_df)):
+            if total_likes_per_category[i] + total_likes_per_category[j] - category_cooccurrence_df.iloc[i, j] != 0:
+                jaccard_cooccurrence_df.iloc[i, j] = category_cooccurrence_df.iloc[i, j] / (total_likes_per_category[i] + total_likes_per_category[j] - category_cooccurrence_df.iloc[i, j])
+            else:
+                jaccard_cooccurrence_df.iloc[i, j] = 0
+
+    return category_cooccurrence_df, user_category_matrix, jaccard_cooccurrence_df
 
 
 def _recommend_category(user_likes, category_cooccurrence_df, user_category_matrix):
@@ -116,7 +123,7 @@ def _calculate_popularity_of_news(beh_df, row):
 
 
 # Function to calculate scores for impressions
-def _calculate_impression_scores(row, user_category_matrix, category_cooccurrence_df, news_df, beh_df):
+def _calculate_impression_scores(row, user_category_matrix, category_cooccurrence_df, news_df, beh_df, popularity_score_proportions):
     # Create a mapping of News ID to Subcategory from news_df
     news_id_to_category = news_df.set_index('ID')['Subcategory'].to_dict()
 
@@ -139,11 +146,6 @@ def _calculate_impression_scores(row, user_category_matrix, category_cooccurrenc
         category = news_id_to_category.get(news_id, None)
 
         if category and category in category_cooccurrence_df.columns:
-            normalized_cooccurrence = category_cooccurrence_df[category] / category_cooccurrence_df[category].max()
-            normalized_preferences = user_preferences / user_preferences.max()
-            # Calculate category score based on co-occurrence with user's preferred categories
-            score = sum(normalized_preferences * normalized_cooccurrence)
-
             # Calculate score based on co-occurrence with user's preferred categories
             score = sum(user_preferences * category_cooccurrence_df[category])
 
@@ -151,7 +153,11 @@ def _calculate_impression_scores(row, user_category_matrix, category_cooccurrenc
             popularity_score = popularity_of_news_until_now.get(news_id, 0)
 
             # Combine the two scores
-            score = score + popularity_score
+            score = score + (popularity_score)
+            popularity_score_proportion = (popularity_score / score) * 100 if score != 0 else -1
+
+            if popularity_score_proportion != -1:
+                popularity_score_proportions.append(popularity_score_proportion)
         else:
             score = 0  # Default score if category is unknown
 
@@ -159,9 +165,14 @@ def _calculate_impression_scores(row, user_category_matrix, category_cooccurrenc
 
     return scores
 
+def _draw_histogram_of_values(values):
+    plt.hist(values, bins=27, edgecolor = "black")
+    plt.xlabel('Popularity score proportion')
+    plt.ylabel('Frequency')
+    plt.show()
 
 def load_data(truncate_behaviors=10):
-    dataset_dir = "datasets/MINDsmall_dev"
+    dataset_dir = "../../datasets/MINDsmall_dev"
 
     behavior_path = f"{dataset_dir}/behaviors.tsv"
     beh_columns = ['ID', 'UserID', 'Time', 'History', 'Impression']
@@ -176,20 +187,24 @@ def load_data(truncate_behaviors=10):
 
 
 def category_combinations_recommender(beh_df, news_df):
-    beh_full_df, _ = load_data(100)  # because beh_df might contain just one line of data
-    category_coccurrence_df, user_category_matrix, conditional_prob_df = _create_cooccurence_matrix(beh_full_df,
+    beh_full_df, _ = load_data(10000)  # because beh_df might contain just one line of data
+    category_coccurrence_df, user_category_matrix, jaccard_cooccurrence_df = _create_cooccurence_matrix(beh_full_df,
                                                                                                     news_df)
+
+    popularity_score_proportions = []
 
     # Apply the function to each row in beh_df to get scores for each impression
     beh_df['Scores'] = beh_df.apply(_calculate_impression_scores,
-                                    args=(user_category_matrix, category_coccurrence_df, news_df, beh_df),
+                                    args=(user_category_matrix, jaccard_cooccurrence_df, news_df, beh_full_df, popularity_score_proportions),
                                     axis=1)
+
+    _draw_histogram_of_values(popularity_score_proportions)
 
     return beh_df[['ID', 'Scores']]
 
 
 if __name__ == '__main__':
-    evaluator = Evaluator("datasets/MINDsmall_dev", truncate_behaviors=100)
+    evaluator = Evaluator("../../datasets/MINDsmall_dev", truncate_behaviors=1000)
     recommenders = {
         "Popular category combinations": category_combinations_recommender,
         "popular": most_popular_recommender,
@@ -202,10 +217,3 @@ if __name__ == '__main__':
     print(evals)
 
     #
-    print("Recommend best 5 articles")
-    beh_df, news_df = load_data()
-
-    beh_df = beh_df.head(1)
-    scores = category_combinations_recommender(beh_df, news_df)
-
-    print(scores)
