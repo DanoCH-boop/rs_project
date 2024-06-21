@@ -4,16 +4,13 @@
 from django.shortcuts import render
 from web.algorithms.bert_recommender import bert_recommender
 from web.algorithms.evaluator import Evaluator
-<<<<<<< Updated upstream
 from web.algorithms.recommender import Recommender
-=======
-from web.algorithms.non_negative_matrix_recommender import non_negative_matrix_recommender
->>>>>>> Stashed changes
 from web.algorithms.naive_rec import load_data, get_most_popular
 from web.algorithms.popular_category_combinations import category_combinations_recommender
 from web.algorithms.random_recommender import random_rating_recommender
 from web.algorithms.most_popular_recommender import most_popular_recommender
 from web.algorithms.similiar_category_combinations import sim_cat_rec
+from web.algorithms.svd_recommender import svd_recommender
 from web.algorithms.tf_idf_recommender import tf_idf_cosine_recommender
 
 
@@ -48,18 +45,13 @@ def evaluation(request):
     recommenders = {
         #"Random recommender": random_rating_recommender,
         "Most popular recommender": most_popular_recommender,
-<<<<<<< Updated upstream
-        #"Tf-idf recommender": tf_idf_cosine_recommender,
-        # "Category combinations recommender": category_combinations_recommender
-=======
         "Tf-idf recommender": tf_idf_cosine_recommender,
-        "Category combinations recommender": category_combinations_recommender
+        "Category combinations recommender": category_combinations_recommender,
         "Tf-idf recommender": tf_idf_cosine_recommender,
         "Category combinations recommender (cf)": category_combinations_recommender,
         "Similar category recommender (cb)": sim_cat_rec,
         "Bert recommender (cb)": bert_recommender,
-        "NNM recommender (cf)": non_negative_matrix_recommender,
->>>>>>> Stashed changes
+        "SVD recommender (cf)": svd_recommender,
         # "Sentence embedding recommender": sentence_embedding_recommender,
     }
     evals = [{
@@ -92,26 +84,12 @@ def recommend(request):
 
     result, userId = recommender.get_reccomendations()
 
-<<<<<<< Updated upstream
     recommended_articles = {}
 
-=======
-    history_ids = beh_df.loc[int(row_id)]['History'] 
-    history_ids = history_ids.split()
-    
-    recommended_articles = {}
-
-    history_articles_ids = articles_df[articles_df['ID'].isin(history_ids)].to_dict('records')
-
->>>>>>> Stashed changes
     row = {'id': row_id, 'userid': userId}
 
     for key, value in result.items(): 
         recommended_articles[key] = [(index + 1, article) for index, article in enumerate(articles_df[articles_df['ID'].isin(value)].to_dict('records'))]
 
-<<<<<<< Updated upstream
     return render(request, 'recommendation.html', {'row': row, 'recommended_articles': recommended_articles})
-=======
-    return render(request, 'recommendation.html', {'row': row, 'recommended_articles': recommended_articles, 'history': history_articles_ids})
->>>>>>> Stashed changes
 
